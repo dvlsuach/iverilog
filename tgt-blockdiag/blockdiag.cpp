@@ -17,15 +17,17 @@
  *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-# include "version_base.h"
-# include "version_tag.h"
-# include "config.h"
-# include  <string.h>
-# include <cstdio>
 /*
- * This is a null target module. It does nothing.
+ * This is a Block Diagram target module. It draws blocks.
  */
 
+# include  "version_base.h"
+# include  "version_tag.h"
+# include  "config.h"
+# include  <string.h>
+# include  <cstdio>
+
+# include  "blockdiag_priv.h"
 # include  "ivl_target.h"
 
 static const char*version_string =
@@ -49,8 +51,23 @@ static const char*version_string =
 
 int target_design(ivl_design_t des)
 {
-  (void)des; /* Parameter is not used. */ printf("Hola");
-      return 0;
+  /* Lots of code borrowed from Stephen Williams' PCB target module. */
+  ivl_scope_t*root_scopes;
+  unsigned nroot;
+  unsigned idx;
+  int rc = 0;
+  const char*blockdiag_path = ivl_design_flag(des, "-o");
+  
+  ivl_design_roots(des, &root_scopes, &nroot);
+  for (idx = 0 ; idx < nroot ; idx += 1) {
+    int tmp = scan_scope(root_scopes[idx]);
+    if (tmp != 0) {
+      rc = tmp;
+      break;
+    }
+  }
+
+  return rc;
 }
 
 

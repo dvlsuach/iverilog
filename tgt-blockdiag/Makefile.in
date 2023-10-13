@@ -29,9 +29,12 @@ bindir = @bindir@
 libdir = @libdir@
 
 CC = @CC@
+CXX = @CXX@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+LEX = @LEX@
+YACC = @YACC@
 
 ifeq (@srcdir@,.)
 INCLUDE_PATH = -I. -I..
@@ -40,10 +43,10 @@ INCLUDE_PATH = -I. -I.. -I$(srcdir) -I$(srcdir)/..
 endif
 
 CPPFLAGS = $(INCLUDE_PATH) @CPPFLAGS@ @DEFS@ @PICFLAG@
-CFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CC@ @CFLAGS@
+CXXFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CXX@ @CXXFLAGS@
 LDFLAGS = @LDFLAGS@
 
-O = blockdiag.o
+O = blockdiag.o scope.o
 
 all: dep blockdiag.tgt
 
@@ -58,6 +61,10 @@ distclean: clean
 cppcheck: $(O:.o=.cpp)
 	cppcheck --enable=all --std=c99 --std=c++03 -f \
 	         --suppressions-list=$(srcdir)/cppcheck.sup \
+	         -UYY_USER_INIT \
+	         -UYYPARSE_PARAM -UYYPRINT -Ushort -Usize_t -Uyyoverflow \
+	         -UYYTYPE_INT8 -UYYTYPE_INT16 -UYYTYPE_UINT8 -UYYTYPE_UINT16 \
+	         -UYYSTYPE -U__SIZE_TYPE__ -Ufree \
 	         --relative-paths=$(srcdir) $(INCLUDE_PATH) $^
 
 Makefile: $(srcdir)/Makefile.in ../config.status
@@ -67,7 +74,7 @@ dep:
 	mkdir dep
 
 %.o: %.cpp
-	$(CC) $(CPPFLAGS) $(CFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
 	mv $*.d dep
 
 ifeq (@WIN32@,yes)
@@ -79,7 +86,7 @@ else
 endif
 
 blockdiag.tgt: $O $(TGTDEPLIBS)
-	$(CC) @shared@ $(LDFLAGS) -o $@ $O $(TGTLDFLAGS)
+	$(CXX) @shared@ $(LDFLAGS) -o $@ $O $(TGTLDFLAGS)
 
 install: all installdirs installfiles
 
