@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Daniel Vicente Lühr Sierra (dvls@ieee.org)
+ * Copyright (c) 2023 Daniel Vicente Lühr Sierra (dluhr@ieee.org)
  *
  *    This source code is free software; you can redistribute it
  *    and/or modify it in source code form under the terms of the GNU
@@ -56,7 +56,8 @@ int target_design(ivl_design_t des)
   unsigned nroot;
   unsigned idx;
   int rc = 0;
-  const char*blockdiag_path = ivl_design_flag(des, "-o");
+  output_param = get_output_parameters(des);
+  //const char*blockdiag_path = ivl_design_flag(des, "-o");
   
   ivl_design_roots(des, &root_scopes, &nroot);
   for (idx = 0 ; idx < nroot ; idx += 1) {

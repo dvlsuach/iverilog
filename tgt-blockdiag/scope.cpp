@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Daniel Vicente Lühr Sierra (dvls@ieee.org)
+ * Copyright (c) 2023 Daniel Vicente Lühr Sierra (dluhr@ieee.org)
  *
  *    This source code is free software; you can redistribute it
  *    and/or modify it in source code form under the terms of the GNU
@@ -33,7 +33,8 @@ struct attr_value {
 };
 
 
-static void draw_block(ivl_scope_t scope, const map<string,attr_value>&attrs);
+static void draw_block(ivl_scope_t scope,
+		       const map<string,attr_value>&attrs);
 
 int scan_scope(ivl_scope_t scope)
 {
@@ -77,9 +78,38 @@ extern "C" int child_scan_fun(ivl_scope_t scope, void*)
  */
 static void draw_block(ivl_scope_t scope, const map<string,attr_value>&attrs)
 {
-  //assert(ivl_scope_type(scope) == IVL_SCT_MODULE);
-  if (ivl_scope_type(scope) == IVL_SCT_MODULE)
+
+  if (ivl_scope_type(scope) == IVL_SCT_MODULE) {
     printf("   Component %s is %s\n", ivl_scope_name(scope), ivl_scope_tname(scope));
-  
+    // Look for the ports
+    unsigned sigs = ivl_scope_sigs(scope);
+    for (unsigned idx = 0 ; idx < sigs ; idx += 1) {
+      ivl_signal_t sig = ivl_scope_sig(scope, idx);
+      ivl_signal_port_t sip = ivl_signal_port(sig);
+      // Skip signals that are not ports.
+      if (sip == IVL_SIP_NONE)
+	continue;
+      assert(ivl_signal_array_count(sig) == 1);
+      ivl_nexus_t nex = ivl_signal_nex(sig, 0);
+      string pindes = ivl_signal_basename(sig);
+      string signal_porttype;
+      switch (ivl_signal_port(sig)) {
+      case IVL_SIP_NONE:
+	signal_porttype.assign("none");
+	break;
+      case IVL_SIP_INPUT:
+	signal_porttype.assign("input");
+	break;
+      case IVL_SIP_OUTPUT:
+	signal_porttype.assign("output");
+	break;
+      case IVL_SIP_INOUT:
+	signal_porttype.assign("inout");
+	break;
+      }      
+      printf("     port %s (%s)\n", ivl_signal_basename(sig),
+	     signal_porttype.c_str());
+    }
+  }
   ivl_scope_children(scope, child_scan_fun, 0);
 }
